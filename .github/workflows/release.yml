@@ -1,0 +1,271 @@
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest-16-cores
+    container: ubuntu:18.04
+
+    steps:
+      - name: Install git on container
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          apt-add-repository ppa:git-core/ppa
+          apt-get update
+          apt-get install -y git
+          git --version
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: update c++ compiler
+        run: |
+          apt-get update
+          add-apt-repository ppa:ubuntu-toolchain-r/test
+          apt-get update
+          apt-get install -y gcc-10 gcc-10-base gcc-10-doc g++-10
+          apt-get install -y libstdc++-10-dev libstdc++-10-doc
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+          gcc --version
+      - name: install cmake
+        run: |
+          apt-get install -y wget
+          apt-get update
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
+          apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+          apt-get update
+          apt-get install -y cmake
+          cmake --version
+      - name: install rust and cargo
+        run: |
+          apt-get install -y cargo
+      - name: Create cmake config file
+        run: |
+          echo "set(CMAKE_BUILD_TYPE RelWithDebInfo)
+          set(USE_CUDA OFF)
+          set(USE_VULKAN ON)
+          set(USE_METAL OFF)
+          set(USE_OPENCL OFF)" > config.cmake
+      - name: install vulkan dependencies
+        run: |
+          apt-get install -y sudo
+          apt-get install -y curl
+          apt-get install -y jq
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.3.204.0
+          vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Tools, SPIRV-Headers
+          vulkan-use-cache: true
+      - uses: ./.github/actions/cmake
+        with:
+          build_type: RelWithDebInfo
+          platform: linux
+
+  build_macos_x86_64:
+    runs-on: X64
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive
+      - name: Create cmake config file
+        run: |
+          echo "set(CMAKE_BUILD_TYPE RelWithDebInfo)
+          set(USE_CUDA OFF)
+          set(USE_VULKAN OFF)
+          set(USE_METAL ON)
+          set(USE_OPENCL OFF)" > config.cmake
+      - uses: ./.github/actions/cmake
+        with:
+          build_type: Release
+          platform: macos_x86_64
+
+  build_macos_arm64:
+    runs-on: ARM64
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.12
+        with:
+          cmake-version: '3.24.x'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          architecture: x64
+      - name: Create cmake config file
+        run: |
+          echo "set(CMAKE_BUILD_TYPE RelWithDebInfo)
+          set(USE_CUDA OFF)
+          set(USE_VULKAN OFF)
+          set(USE_METAL ON)
+          set(USE_OPENCL OFF)" > config.cmake
+      - uses: ./.github/actions/cmake
+        with:
+          build_type: Release
+          platform: macos_arm64
+
+  build_windows:
+    runs-on: windows-latest-16-cores
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive
+      - name: Create cmake config file
+        run: |
+          echo "set(CMAKE_BUILD_TYPE RelWithDebInfo)
+          set(USE_CUDA OFF)
+          set(USE_VULKAN ON)
+          set(USE_METAL OFF)
+          set(USE_OPENCL OFF)" > config.cmake
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.3.204.0
+          vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Tools, SPIRV-Headers
+          vulkan-use-cache: true
+      - uses: ./.github/actions/cmake
+        with:
+          build_type: Release
+          platform: windows
+
+  test_linux:
+    needs: build_linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_linux
+          path: build/
+      - name: Flatten artifact paths
+        working-directory: build
+        run: mv tvm/libtvm_runtime.so .
+      - name: Download model
+        uses: ./.github/actions/download_model
+      - name: Run dart tests
+        uses: ./.github/actions/dart_test
+
+  test_macos_x86_64:
+    needs: build_macos_x86_64
+    runs-on: X64
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_macos_x86_64
+          path: build/
+      - name: Flatten artifact paths
+        working-directory: build
+        run: mv tvm/libtvm_runtime.dylib .
+      - name: Download model
+        uses: ./.github/actions/download_model
+      - name: Run dart tests
+        uses: ./.github/actions/dart_test
+
+  test_macos_arm64:
+    needs: build_macos_arm64
+    runs-on: ARM64
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_macos_arm64
+          path: build/
+      - name: Flatten artifact paths
+        working-directory: build
+        run: mv tvm/libtvm_runtime.dylib .
+      - name: Download model
+        uses: ./.github/actions/download_model
+      - name: Run dart tests
+        uses: ./.github/actions/dart_test
+
+  test_windows:
+    needs: build_windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.3.204.0
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_windows
+          path: build/
+      - name: Flatten artifact paths
+        working-directory: build
+        run: |
+          mv tvm/Release/tvm_runtime.dll .
+          mv Release/mlc_chat.dll .
+          mv Release/mlc_llm.dll .
+          ls
+      - name: Check tvm_runtime dependencies
+        run: ldd build/tvm_runtime.dll
+      - name: Download model
+        uses: ./.github/actions/download_model
+      - name: Run dart tests
+        uses: ./.github/actions/dart_test
+
+  gcloud_release:
+    runs-on: ubuntu-latest
+    needs:
+      - test_linux
+      - test_macos_x86_64
+      - test_macos_arm64
+      - test_windows
+    steps:
+      - uses: actions/checkout@v3
+      - name: Authenticate with Google cloud
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.PIECES_GCLOUD_SERVICE_KEY }}
+          project_id: pi3c3s-cloud-server
+          create_credentials_file: true
+
+      - name: 'Upload to GCS - linux'
+        uses: ./.github/actions/gcs_upload
+        with:
+          platform: linux
+      - name: 'Upload to GCS - macos_x86_64'
+        uses: ./.github/actions/gcs_upload
+        with:
+          platform: macos_x86_64
+      - name: 'Upload to GCS - macos_arm64'
+        uses: ./.github/actions/gcs_upload
+        with:
+          platform: macos_arm64
+      - name: 'Upload to GCS - windows'
+        uses: ./.github/actions/gcs_upload
+        with:
+          platform: windows

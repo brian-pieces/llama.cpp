@@ -1,0 +1,66 @@
+name: Upload artifact to GCS
+description: Upload artifact to GCS
+inputs:
+  platform:
+    description: OS and architecture to build for
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build_${{ inputs.platform }}
+        path: bin/${{ inputs.platform }}
+    # tvm_runtime
+    - name: Upload tvm_runtime to GCS - unix
+      if: startsWith(inputs.platform, 'linux') || startsWith(inputs.platform, 'macos')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}/tvm
+        glob: 'libtvm_runtime.{so,dylib}'
+        destination: pieces-libraries/tvm_runtime/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false
+    - name: Upload tvm_runtime to GCS - windows
+      if: startsWith(inputs.platform, 'windows')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}/tvm/Release
+        glob: 'tvm_runtime.dll'
+        destination: pieces-libraries/tvm_runtime/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false
+    # mlc_llm
+    - name: Upload mlc_llm to GCS - unix
+      if: startsWith(inputs.platform, 'linux') || startsWith(inputs.platform, 'macos')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}
+        glob: 'libmlc_llm.{so,dylib}'
+        destination: pieces-libraries/mlc_llm/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false
+    - name: Upload mlc_llm to GCS - windows
+      if: startsWith(inputs.platform, 'windows')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}/Release
+        glob: 'mlc_llm.dll'
+        destination: pieces-libraries/mlc_llm/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false
+    # mlc_chat
+    - name: Upload mlc_chat to GCS - unix
+      if: startsWith(inputs.platform, 'linux') || startsWith(inputs.platform, 'macos')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}
+        glob: 'libmlc_chat.{so,dylib}'
+        destination: pieces-libraries/mlc_chat/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false
+    - name: Upload mlc_chat to GCS - windows
+      if: startsWith(inputs.platform, 'windows')
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: bin/${{ inputs.platform }}/Release
+        glob: 'mlc_chat.dll'
+        destination: pieces-libraries/mlc_chat/${{ github.ref_name }}/${{ inputs.platform }}
+        parent: false

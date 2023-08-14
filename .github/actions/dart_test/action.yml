@@ -1,0 +1,17 @@
+# This is a Composite Action that enables step re-use
+
+name: Dart Test
+description: Encapsulates multiple Dart utilities to simplify dart reuse
+
+runs:
+  using: "composite"
+  steps:
+    - uses: dart-lang/setup-dart@v1
+
+    - name: Install Dart dependencies
+      shell: bash
+      run: dart pub get
+
+    - name: Run tests
+      shell: bash
+      run: dart test

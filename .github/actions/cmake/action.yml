@@ -1,0 +1,57 @@
+# This is a Composite Action that enables step re-use
+
+name: CMake Build + Test
+description: Cross-platform cmake build function
+inputs:
+  platform:
+    description: OS and architecture to build for
+    required: true
+  build_type:
+    description: CMake Build Type - Debug, RelWithDebug, or Release
+    required: false
+    default: Release
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure CMake project
+      shell: bash
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ inputs.build_type }}
+
+    - name: Build CMake project
+      shell: bash
+      run: |
+        cmake --build build -j --config ${{ inputs.build_type }}
+
+    - name: Archive build artifacts - linux
+      if: startsWith(inputs.platform, 'linux')
+      uses: actions/upload-artifact@v3
+      with:
+        name: build_${{ inputs.platform }}
+        path: |
+          build/libmlc_chat.so
+          build/libmlc_llm.so
+          build/tvm/libtvm_runtime.so
+        if-no-files-found: error
+
+    - name: Archive build artifacts - mac
+      if: startsWith(inputs.platform, 'macos')
+      uses: actions/upload-artifact@v3
+      with:
+        name: build_${{ inputs.platform }}
+        path: |
+          build/libmlc_chat.dylib
+          build/libmlc_llm.dylib
+          build/tvm/libtvm_runtime.dylib
+        if-no-files-found: error
+
+    - name: Archive build artifacts - windows
+      if: startsWith(inputs.platform, 'windows')
+      uses: actions/upload-artifact@v3
+      with:
+          name: build_${{ inputs.platform }}
+          path: |
+            build/${{ inputs.build_type }}/mlc_chat.dll
+            build/${{ inputs.build_type }}/mlc_llm.dll
+            build/tvm/${{ inputs.build_type }}/tvm_runtime.dll
+          if-no-files-found: error

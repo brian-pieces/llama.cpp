@@ -1,0 +1,24 @@
+# This is a Composite Action that enables step re-use
+
+name: Download prebuilt MLC model weights and binary
+description: Download prebuilt MLC model weights and binary
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download prebuilt model binary libraries from GitHub
+      shell: bash
+      run: |
+        mkdir -p dist/prebuilt
+        git clone https://github.com/mlc-ai/binary-mlc-llm-libs.git dist/prebuilt/lib
+    - name: Download prebuilt model weights
+      shell: bash
+      working-directory: dist/prebuilt
+      run: git clone https://huggingface.co/mlc-ai/mlc-chat-Llama-2-7b-chat-hf-q4f16_1
+    - name: Reorganize weights and binary
+      shell: bash
+      working-directory: dist/
+      run: |
+        mkdir Llama-2-7b-chat-hf-q4f16_1
+        mv prebuilt/mlc-chat-Llama-2-7b-chat-hf-q4f16_1 Llama-2-7b-chat-hf-q4f16_1/params
+        cp prebuilt/lib/Llama-2-7b-chat-hf-q4f16_1-* Llama-2-7b-chat-hf-q4f16_1
