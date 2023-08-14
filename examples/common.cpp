@@ -668,7 +668,18 @@ struct llama_context_params llama_context_params_from_gpt_params(const gpt_param
     return lparams;
 }
 
-std::tuple<struct llama_model *, struct llama_context *> llama_init_from_gpt_params(const gpt_params & params) {
+struct llama_context * llama_new_context_with_old_model(llama_model * model, llama_context_params lparams) {
+    llama_context * lctx = llama_new_context_with_model(model, lparams);
+    if (lctx == NULL) {
+        fprintf(stderr, "%s: error: failed to create context with model '%s'\n", __func__, params.model.c_str());
+        llama_free_model(model);
+        return std::make_tuple(nullptr, nullptr);
+    }
+    return lctx;
+}
+
+
+std::tuple<struct llama_model *, struct llama_context *, struct llama_context_params> llama_init_from_gpt_params(const gpt_params & params) {
     auto lparams = llama_context_params_from_gpt_params(params);
 
     llama_model * model  = llama_load_model_from_file(params.model.c_str(), lparams);
@@ -689,6 +700,38 @@ std::tuple<struct llama_model *, struct llama_context *> llama_init_from_gpt_par
                                              params.lora_adapter.c_str(),
                                              params.lora_base.empty() ? NULL : params.lora_base.c_str(),
                                              params.n_threads);
+        if (err != 0) {
+            fprintf(stderr, "%s: error: failed to apply lora adapter\n", __func__);
+            llama_free(lctx);
+            llama_free_model(model);
+            return std::make_tuple(nullptr, nullptr);
+        }
+    }
+
+    return std::make_tuple(model, lctx);
+}
+
+std::tuple<struct llama_model *, struct llama_context *, struct llama_context_params> llama_init_from_gpt_params_(const gpt_params & params) {
+    auto lparams = llama_context_params_from_gpt_params(params);
+
+    llama_model * model  = llama_load_model_from_file(params.model.c_str(), lparams);
+    if (model == NULL) {
+        fprintf(stderr, "%s: error: failed to load model '%s'\n", __func__, params.model.c_str());
+        return std::make_tuple(nullptr, nullptr);
+    }
+
+    llama_context * lctx = llama_new_context_with_model(model, lparams);
+    if (lctx == NULL) {
+        fprintf(stderr, "%s: error: failed to create context with model '%s'\n", __func__, params.model.c_str());
+        llama_free_model(model);
+        return std::make_tuple(nullptr, nullptr);
+    }
+
+    if (!params.lora_adapter.empty()) {
+        int err = llama_model_apply_lora_from_file(model,
+                                                   params.lora_adapter.c_str(),
+                                                   params.lora_base.empty() ? NULL : params.lora_base.c_str(),
+                                                   params.n_threads);
         if (err != 0) {
             fprintf(stderr, "%s: error: failed to apply lora adapter\n", __func__);
             llama_free(lctx);
