@@ -29,7 +29,8 @@ void main() async {
 
       print("output 1: ${wrappedChatConverseReturnable.data.output}");
 
-      // chatSession.reset();
+      WrappedChatReset wrappedChatReset = chatSession.reset();
+      expect(wrappedChatReset.success, isTrue);
 
       // Check reset with another message
       String input2 = "What else can you tell me?";

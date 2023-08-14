@@ -41,7 +41,7 @@ public:
     }
 
     void load_model() {
-        std::tie(model, ctx, ctx_params) = llama_init_from_gpt_params(params);
+        std::tie(model, ctx, ctx_params) = llama_init_from_gpt_params_return_lparams(params);
         // throw exception if model is null
         if (model == NULL) {
             throw std::runtime_error("Unable to load model");
@@ -133,10 +133,10 @@ public:
 
             // TODO: free ctx here instead of at inference time?
 
-            return {true, "", outputCopy->c_str()};
+            return {true, "", {outputCopy->c_str()}};
 
         } catch (const std::exception& e) {
-            return {false, e.what(), ""};
+            return {false, e.what(), {""}};
         }
     };
 

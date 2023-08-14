@@ -17,17 +17,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cf066f83-4f29-4925-8176-c19d40730cd4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/dart/chat.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dart/types.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/chat_pieces.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/chat_pieces_simple.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/llama2_chat/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/llama2_chat/chat.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/llama2_chat/chat.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/chat_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/examples/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/llama2_chat/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dart_tool/test/incremental_kernel.Ly9AZGFydD0yLjEy" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/test/incremental_kernel.Ly9AZGFydD0yLjEy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/common.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/examples/common.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/common.h" beforeDir="false" afterPath="$PROJECT_DIR$/examples/common.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/llama2_chat/chat.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/examples/llama2_chat/chat.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/chat_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/chat_test.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +87,7 @@
       <recent name="$PROJECT_DIR$/examples/simple" />
     </key>
   </component>
-  <component name="RunManager" selected="Dart Test.chat test in chat_test.dart">
+  <component name="RunManager" selected="Dart Test.Tests in chat_test.dart">
     <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
@@ -120,8 +117,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Dart Test.chat test in chat_test.dart" />
         <item itemvalue="Dart Test.Tests in chat_test.dart" />
+        <item itemvalue="Dart Test.chat test in chat_test.dart" />
       </list>
     </recent_temporary>
   </component>
@@ -133,7 +130,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1692022777621</updated>
-      <workItem from="1692022778893" duration="17097000" />
+      <workItem from="1692022778893" duration="18362000" />
     </task>
     <servers />
   </component>

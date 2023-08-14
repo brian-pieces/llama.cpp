@@ -111,4 +111,8 @@ std::vector<llama_token> llama_tokenize(struct llama_context * ctx, const std::s
 //
 
 std::tuple<struct llama_model *, struct llama_context *> llama_init_from_gpt_params(const gpt_params & params);
+std::tuple<struct llama_model *, struct llama_context *, struct llama_context_params>
+        llama_init_from_gpt_params_return_lparams(const gpt_params & params);
+struct llama_context * llama_new_context_with_old_model(llama_model * model, llama_context_params lparams);
 struct llama_context_params llama_context_params_from_gpt_params(const gpt_params & params);
+
